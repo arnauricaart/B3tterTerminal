@@ -50,7 +50,14 @@ SET_ZSH_DEFAULT=no
 cleanup() {
   tput cnorm 2>/dev/null || true
 }
+
+on_error() {
+  local status=$?
+  printf '\n%b Error en %s, linea %s. Estado: %s\n' "$ERR" "$APP" "${BASH_LINENO[0]:-?}" "$status" >&2
+}
+
 trap cleanup EXIT INT TERM
+trap on_error ERR
 
 clear_screen() { printf '\033[2J\033[H'; }
 
@@ -322,8 +329,12 @@ load_state() {
     grep -Fq "zsh-syntax-highlighting" "$rc" && ZSH_SYNTAX=yes || ZSH_SYNTAX=no
   fi
 
-  [[ -f $fastfetch_marker ]] && FASTFETCH_START=yes || FASTFETCH_START=no
-  [[ $FASTFETCH_START == yes ]] && FASTFETCH_ENABLED=yes
+  if [[ -f $fastfetch_marker ]]; then
+    FASTFETCH_START=yes
+    FASTFETCH_ENABLED=yes
+  else
+    FASTFETCH_START=no
+  fi
 }
 
 choose_palette() {
@@ -424,11 +435,15 @@ shell_menu() {
       2) toggle_yes_no BAT_ALIASES ;;
       3)
         toggle_yes_no FASTFETCH_ENABLED
-        [[ $FASTFETCH_ENABLED == no ]] && FASTFETCH_START=no
+        if [[ $FASTFETCH_ENABLED == no ]]; then
+          FASTFETCH_START=no
+        fi
         ;;
       4)
         toggle_yes_no FASTFETCH_START
-        [[ $FASTFETCH_START == yes ]] && FASTFETCH_ENABLED=yes
+        if [[ $FASTFETCH_START == yes ]]; then
+          FASTFETCH_ENABLED=yes
+        fi
         ;;
       5) toggle_yes_no ZSH_AUTOSUGGEST ;;
       6) toggle_yes_no ZSH_SYNTAX ;;
@@ -674,7 +689,9 @@ tab_bar_background $KITTY_BG
 K
 
   zsh_path=$(command -v zsh || true)
-  [[ -n $zsh_path ]] && printf 'shell %s\n' "$zsh_path" >> "$studio"
+  if [[ -n $zsh_path ]]; then
+    printf 'shell %s\n' "$zsh_path" >> "$studio"
+  fi
 
   if [[ $KITTY_TRAIL == yes ]]; then
     command cat >> "$studio" <<K
@@ -807,7 +824,9 @@ apply_changes() {
 
   printf "\n${BOLD}%s${NC}\n" "Listo. Abre una terminal nueva o ejecuta:"
   printf "  ${CYAN}exec zsh${NC}\n"
-  [[ $KITTY_ENABLED == yes ]] && printf "  ${CYAN}kitty${NC}\n"
+  if [[ $KITTY_ENABLED == yes ]]; then
+    printf "  ${CYAN}kitty${NC}\n"
+  fi
   press_enter
 }
 
