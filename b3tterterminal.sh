@@ -31,6 +31,7 @@ TARGET_DBUS=''
 #   sudo B3TTER_ASCII_ANIMATION=no ./b3tterterminal.sh
 ASCII_RGB_ANIMATION=${B3TTER_ASCII_ANIMATION:-yes}
 ASCII_ANIMATION_PID=''
+TERMINAL_STTY_STATE=''
 
 # ---------- Defaults ----------
 INSTALL_ZSH=yes; ZSH_AUTOSUGGEST=yes; ZSH_SYNTAX=yes; ZSH_HISTORY=no; ZSH_DEFAULT=yes
@@ -46,6 +47,7 @@ declare -a TASK_LABELS=() TASK_FUNCS=() FAILURES=()
 
 cleanup() {
   stop_ascii_animation
+  resume_terminal_input
   tput cnorm 2>/dev/null || true
 }
 trap cleanup EXIT INT TERM
@@ -132,6 +134,36 @@ stop_ascii_animation() {
   ASCII_ANIMATION_PID=''
 }
 
+drain_stdin() {
+  [[ -t 0 ]] || return 0
+
+  local pending
+  while IFS= read -r -t 0.01 pending; do
+    :
+  done
+}
+
+pause_terminal_input() {
+  [[ -t 0 ]] || return 0
+
+  if [[ -z ${TERMINAL_STTY_STATE:-} ]]; then
+    TERMINAL_STTY_STATE=$(stty -g 2>/dev/null || true)
+  fi
+
+  stty -echo 2>/dev/null || true
+  drain_stdin
+}
+
+resume_terminal_input() {
+  [[ -t 0 ]] || return 0
+
+  drain_stdin
+  if [[ -n ${TERMINAL_STTY_STATE:-} ]]; then
+    stty "$TERMINAL_STTY_STATE" 2>/dev/null || true
+    TERMINAL_STTY_STATE=''
+  fi
+}
+
 rule() {
   local cols width i
   cols=$(term_cols)
@@ -144,11 +176,13 @@ rule() {
 }
 
 banner() {
+  local animate=${1:-yes}
+
   draw_ascii_logo "$CYAN"
   left_plain "Terminal setup" "${MAGENTA}${BOLD}"
   left_plain 'ZSH · Kitty · Oh My Posh · LSD · BAT · Fastfetch' "$DIM"
   rule
-  start_ascii_animation
+  [[ $animate == yes ]] && start_ascii_animation
 }
 
 render_section_steps() {
@@ -182,10 +216,11 @@ render_section_steps() {
 
 page() {
   local title=$1 step=${2:-}
+  local animate=${3:-yes}
   local current total step_text
 
   clear_screen
-  banner
+  banner "$animate"
   printf '\n'
 
   if [[ $step =~ ^([0-9]+)/([0-9]+)$ ]]; then
@@ -1004,7 +1039,8 @@ run_task_with_single_bar() {
 }
 
 install_page() {
-  page "$(tr Instalación Installation)" ''
+  page "$(tr Instalación Installation)" '' no
+  pause_terminal_input
   build_tasks
   : > "$LOG_FILE"
 
@@ -1024,6 +1060,7 @@ install_page() {
 
   draw_single_progress "$total" "$total" "$(tr 'Instalación completada' 'Installation complete')" '✓'
   printf '\n\n'
+  resume_terminal_input
 
   if ((${#FAILURES[@]} == 0)); then
     printf "${GREEN}${BOLD}[+] %s${NC}\n" "$(tr 'B3tterTerminal terminó correctamente.' 'B3tterTerminal completed successfully.')"
