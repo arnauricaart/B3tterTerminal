@@ -13,6 +13,11 @@ The installer asks for all options first and only changes the system after the f
   <img src="assets/screenshots/ventana_new.png" alt="B3tterTerminal styled terminal" width="49%">
 </p>
 
+<p align="center">
+  <img src="assets/videos/before-terminal.gif" alt="Original terminal demo" width="49%">
+  <img src="assets/videos/after-terminal.gif" alt="B3tterTerminal demo" width="49%">
+</p>
+
 ## Command Upgrades
 
 ### ls (lsd)
