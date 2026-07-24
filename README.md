@@ -1,8 +1,32 @@
-# B3tterTerminal
+<p align="center">
+  <img src="assets/logo_b3tter.png" alt="B3tterTerminal" width="650">
+</p>
 
 B3tterTerminal is an interactive installer for Kali Linux that improves the visual terminal setup with ZSH, Kitty, Oh My Posh, LSD, BAT and Fastfetch.
 
 The installer asks for all options first and only changes the system after the final confirmation.
+
+## Preview
+
+| Before | After |
+| --- | --- |
+| ![Terminal before](assets/screenshots/before-terminal.png) | ![Terminal after](assets/screenshots/after-terminal.png) |
+| [Watch before video](assets/videos/before-terminal.mov) | [Watch after video](assets/videos/after-terminal.mov) |
+
+## Command Upgrades
+
+| Standard `ls` | B3tterTerminal `ls` |
+| --- | --- |
+| ![ls before](assets/screenshots/before-ls.png) | ![ls after](assets/screenshots/after-ls.png) |
+
+| Standard `cat` | B3tterTerminal `cat` |
+| --- | --- |
+| ![cat before](assets/screenshots/before-cat.png) | ![cat after](assets/screenshots/after-cat.png) |
+
+## Videos
+
+- [Full installation demo](assets/videos/install-demo.mp4)
+- [Animated terminal preview](assets/videos/animated-preview.mp4)
 
 ## Features
 
@@ -45,6 +69,11 @@ sudo B3TTER_ASCII_ANIMATION=no ./b3tterterminal.sh
 - Optionally writes XFCE settings for compositing and `Super+Enter`.
 
 Existing `.zshrc` and Kitty helper files are backed up before changes.
+
+## Roadmap
+
+- Interactive configuration editor for changing colors, opacity, prompt theme, aliases, cursor effects and Fastfetch without editing config files manually.
+- Restore/repair menu for rolling back or regenerating the managed terminal setup.
 
 ## Notes
 
