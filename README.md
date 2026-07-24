@@ -14,8 +14,8 @@ The installer asks for all options first and only changes the system after the f
 </p>
 
 <p align="center">
-  <img src="assets/videos/before-terminal.gif" alt="Original terminal demo" width="49%">
   <img src="assets/videos/after-terminal.gif" alt="B3tterTerminal demo" width="49%">
+  <img src="assets/videos/before-terminal.gif" alt="Original terminal demo" width="49%">
 </p>
 
 ## Command Upgrades
@@ -45,7 +45,6 @@ The installer asks for all options first and only changes the system after the f
 ## Videos
 
 - [Full installation demo](assets/videos/install-demo.mp4)
-- [Animated terminal preview](assets/videos/animated-preview.mp4)
 
 ## Features
 
@@ -107,3 +106,17 @@ The script downloads Oh My Posh, prompt themes and Meslo Nerd Font from their of
 ## License
 
 No license has been selected yet. Add a license before publishing if you want other people to know how they may use or modify the project.
+
+## Credits
+
+B3tterTerminal builds on these projects:
+
+- [ZSH](https://www.zsh.org/)
+- [zsh-autosuggestions](https://github.com/zsh-users/zsh-autosuggestions)
+- [zsh-syntax-highlighting](https://github.com/zsh-users/zsh-syntax-highlighting)
+- [Kitty](https://sw.kovidgoyal.net/kitty/)
+- [Oh My Posh](https://ohmyposh.dev/)
+- [LSD](https://github.com/lsd-rs/lsd)
+- [BAT](https://github.com/sharkdp/bat)
+- [Fastfetch](https://github.com/fastfetch-cli/fastfetch)
+- [Nerd Fonts](https://www.nerdfonts.com/)
