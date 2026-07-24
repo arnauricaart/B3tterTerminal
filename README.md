@@ -2,9 +2,11 @@
   <img src="assets/logo_b3tter.png" alt="B3tterTerminal" width="650">
 </p>
 
-B3tterTerminal is an interactive installer for Kali Linux that improves the visual terminal setup with ZSH, Kitty, Oh My Posh, LSD, BAT and Fastfetch.
+B3tterTerminal is an interactive custom Kali terminal installer that improves the visual terminal setup with ZSH, Kitty, Oh My Posh, LSD, BAT and Fastfetch.
 
 The installer asks for all options first and only changes the system after the final confirmation.
+
+Built for Kali Linux users who want a better hacking terminal, custom terminal appearance, cleaner command output and a faster post-install terminal setup.
 
 ## Preview
 
@@ -45,6 +47,14 @@ The installer asks for all options first and only changes the system after the f
 ## Videos
 
 - [Full installation demo](assets/videos/install-demo.mp4)
+
+## Configuration Editor
+
+<p align="center">
+  <img src="assets/screenshots/edit.png" alt="B3tterTerminal post-install configuration editor" width="90%">
+</p>
+
+After installing, `b3tterterminal-config.sh` lets you edit the generated Kali terminal setup without manually touching dotfiles.
 
 ## Features
 
@@ -134,6 +144,8 @@ Existing `.zshrc` and Kitty helper files are backed up before changes.
 ## Notes
 
 The script downloads Oh My Posh, prompt themes and Meslo Nerd Font from their official upstream locations. Review the script before running it if you want to audit every network action.
+
+Search keywords: Kali terminal, custom terminal, Kali hacking terminal, Kali better terminal, custom Kali, custom Kali terminal, Linux terminal customization.
 
 ## License
 
