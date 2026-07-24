@@ -421,7 +421,7 @@ zsh_page() {
   if ask_yes_no "$(tr '¿Instalar y configurar ZSH?' 'Install and configure ZSH?')" yes; then
     INSTALL_ZSH=yes
     ask_yes_no zsh-autosuggestions yes && ZSH_AUTOSUGGEST=yes || ZSH_AUTOSUGGEST=no
-    ask_yes_no "zsh-syntax-highlighting — $(tr 'colores predeterminados' 'default colors')" yes && ZSH_SYNTAX=yes || ZSH_SYNTAX=no
+    ask_yes_no "zsh-syntax-highlighting — $(tr 'errores en rojo' 'red errors')" yes && ZSH_SYNTAX=yes || ZSH_SYNTAX=no
     ask_yes_no "$(tr '¿Respaldar y reparar el historial?' 'Back up and repair history?')" no && ZSH_HISTORY=yes || ZSH_HISTORY=no
     ask_yes_no "$(tr '¿Usar ZSH como shell predeterminada?' 'Use ZSH as the default shell?')" yes && ZSH_DEFAULT=yes || ZSH_DEFAULT=no
   else
@@ -773,7 +773,6 @@ Z
     if [[ $ZSH_SYNTAX == yes ]]; then
       command cat <<'Z'
 # zsh-syntax-highlighting must be loaded at the end of the interactive config.
-# Keep the official/default color palette from the installed plugin.
 if (( ! ${+functions[_zsh_highlight_main]} && ! ${+functions[_zsh_highlight]} )); then
   for f in \
     /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh \
@@ -784,6 +783,10 @@ if (( ! ${+functions[_zsh_highlight_main]} && ! ${+functions[_zsh_highlight]} ))
     fi
   done
 fi
+
+# Make invalid commands clearly visible on dark terminal palettes.
+typeset -gA ZSH_HIGHLIGHT_STYLES
+ZSH_HIGHLIGHT_STYLES[unknown-token]='fg=red,bold'
 Z
     fi
 
@@ -920,6 +923,7 @@ task_validate() {
     if [[ $ZSH_SYNTAX == yes ]]; then
       run_as_target zsh -ic '
         (( ${+functions[_zsh_highlight_main]} || ${+functions[_zsh_highlight]} ))
+        [[ ${ZSH_HIGHLIGHT_STYLES[unknown-token]-} == fg=red,bold ]]
       '
     fi
   fi
