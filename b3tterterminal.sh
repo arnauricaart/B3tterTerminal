@@ -151,7 +151,9 @@ banner() {
   left_plain "Terminal setup" "${MAGENTA}${BOLD}"
   left_plain 'ZSH · Kitty · Oh My Posh · LSD · BAT · Fastfetch' "$DIM"
   rule
-  [[ $animate == yes ]] && start_ascii_animation
+  if [[ $animate == yes ]]; then
+    start_ascii_animation
+  fi
 }
 
 render_section_steps() {
