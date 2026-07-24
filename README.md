@@ -8,20 +8,34 @@ The installer asks for all options first and only changes the system after the f
 
 ## Preview
 
-| Before | After |
-| --- | --- |
-| ![Terminal before](assets/videos/before-terminal.gif) | ![Terminal after](assets/videos/after-terminal.gif) |
-| [Watch before video](assets/videos/before-terminal.mov) | [Watch after video](assets/videos/after-terminal.mov) |
+<p align="center">
+  <img src="assets/screenshots/ventana.png" alt="Original Kali terminal" width="49%">
+  <img src="assets/screenshots/ventana_new.png" alt="B3tterTerminal styled terminal" width="49%">
+</p>
 
 ## Command Upgrades
 
-| Standard `ls` | B3tterTerminal `ls` |
-| --- | --- |
-| ![ls before](assets/screenshots/before-ls.png) | ![ls after](assets/screenshots/after-ls.png) |
+### ls (lsd)
 
-| Standard `cat` | B3tterTerminal `cat` |
+| Standard `ls` | `ls` with LSD |
 | --- | --- |
-| ![cat before](assets/screenshots/before-cat.png) | ![cat after](assets/screenshots/after-cat.png) |
+| ![Standard ls](assets/screenshots/before-ls.png) | ![ls with LSD](assets/screenshots/after-ls.png) |
+
+### cat (bat)
+
+| Standard `cat` | `cat` with BAT |
+| --- | --- |
+| ![Standard cat](assets/screenshots/before-cat.png) | ![cat with BAT](assets/screenshots/after-cat.png) |
+
+## Window Shortcuts
+
+<p align="center">
+  <img src="assets/screenshots/old_win.png" alt="Standard terminal tabs" width="49%">
+  <img src="assets/screenshots/new_win.png" alt="B3tterTerminal window tabs" width="49%">
+</p>
+
+- `Ctrl+Shift+T` opens a new tab/window.
+- `Ctrl+Shift+W` closes the current tab/window.
 
 ## Videos
 
