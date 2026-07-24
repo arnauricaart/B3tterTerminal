@@ -55,6 +55,7 @@ The installer asks for all options first and only changes the system after the f
 - BAT aliases for a nicer `cat`.
 - Optional Fastfetch startup.
 - User-aware setup: packages are installed as root, personal config is applied to the selected user.
+- Post-install configuration editor for changing the generated setup without manually editing dotfiles.
 
 ## Usage
 
@@ -83,6 +84,23 @@ Disable the animated ASCII header if the terminal feels slow:
 sudo B3TTER_ASCII_ANIMATION=no ./b3tterterminal.sh
 ```
 
+## Configure After Install
+
+Edit the generated setup for your current user:
+
+```bash
+chmod +x b3tterterminal-config.sh
+./b3tterterminal-config.sh
+```
+
+Edit the generated setup for root:
+
+```bash
+sudo B3TTER_USER=root ./b3tterterminal-config.sh
+```
+
+The configuration tool can change Kitty colors, opacity, font size, cursor style, cursor trail, Oh My Posh theme, LSD/BAT aliases, Fastfetch startup, ZSH autosuggestions, syntax highlighting, default shell and desktop shortcuts.
+
 ## What It Changes
 
 - Installs selected packages with `apt-get`.
@@ -96,8 +114,8 @@ Existing `.zshrc` and Kitty helper files are backed up before changes.
 
 ## Roadmap
 
-- Interactive configuration editor for changing colors, opacity, prompt theme, aliases, cursor effects and Fastfetch without editing config files manually.
-- Restore/repair menu for rolling back or regenerating the managed terminal setup.
+- Configuration profiles for saving and switching between multiple terminal styles.
+- Restore/repair menu for rolling back backups or regenerating the managed terminal setup.
 
 ## Notes
 
