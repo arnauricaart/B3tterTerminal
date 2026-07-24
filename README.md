@@ -93,10 +93,24 @@ chmod +x b3tterterminal-config.sh
 ./b3tterterminal-config.sh
 ```
 
+The configuration tool lets you choose English or Spanish at startup. You can also force the language:
+
+```bash
+B3TTER_LANG=en ./b3tterterminal-config.sh
+B3TTER_LANG=es ./b3tterterminal-config.sh
+```
+
 Edit the generated setup for root:
 
 ```bash
 sudo B3TTER_USER=root ./b3tterterminal-config.sh
+```
+
+Force the language when editing root:
+
+```bash
+sudo B3TTER_LANG=en B3TTER_USER=root ./b3tterterminal-config.sh
+sudo B3TTER_LANG=es B3TTER_USER=root ./b3tterterminal-config.sh
 ```
 
 The configuration tool can change Kitty colors, opacity, font size, cursor style, cursor trail, Oh My Posh theme, LSD/BAT aliases, Fastfetch startup, ZSH autosuggestions, syntax highlighting, default shell and desktop shortcuts.

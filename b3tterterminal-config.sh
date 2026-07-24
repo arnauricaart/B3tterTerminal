@@ -19,6 +19,7 @@ WARN="${YELLOW}[!]${NC}"
 ERR="${RED}[x]${NC}"
 SELECT="${MAGENTA}[>]${NC}"
 
+LANGUAGE=${B3TTER_LANG:-${B3TTER_LANGUAGE:-es}}
 TARGET_USER=''
 TARGET_HOME=''
 TARGET_UID=''
@@ -53,13 +54,22 @@ cleanup() {
 
 on_error() {
   local status=$?
-  printf '\n%b Error en %s, linea %s. Estado: %s\n' "$ERR" "$APP" "${BASH_LINENO[0]:-?}" "$status" >&2
+  printf '\n%b %s %s, %s %s. %s: %s\n' \
+    "$ERR" "$(tr 'Error en' 'Error in')" "$APP" \
+    "$(tr 'linea' 'line')" "${BASH_LINENO[0]:-?}" \
+    "$(tr 'Estado' 'Status')" "$status" >&2
 }
 
 trap cleanup EXIT INT TERM
 trap on_error ERR
 
 clear_screen() { printf '\033[2J\033[H'; }
+tr() {
+  case ${LANGUAGE:-es} in
+    en|EN|eng|ENG|english|English) printf '%s' "$2" ;;
+    *) printf '%s' "$1" ;;
+  esac
+}
 
 term_cols() {
   local cols=${COLUMNS:-}
@@ -103,7 +113,7 @@ draw_ascii_logo() {
 
 banner() {
   draw_ascii_logo
-  left_plain "Post-install configuration" "${MAGENTA}${BOLD}"
+  left_plain "$(tr 'Configuracion post-instalacion' 'Post-install configuration')" "${MAGENTA}${BOLD}"
   left_plain 'Kitty - ZSH - Oh My Posh - LSD - BAT - Fastfetch' "$DIM"
   rule
 }
@@ -119,12 +129,12 @@ page() {
 }
 
 press_enter() {
-  printf "\n${DIM}%s${NC}" "Pulsa ENTER para continuar..."
+  printf "\n${DIM}%s${NC}" "$(tr 'Pulsa ENTER para continuar...' 'Press ENTER to continue...')"
   read -r _ || true
 }
 
 yes_label() {
-  [[ $1 == yes ]] && printf 'Si' || printf 'No'
+  [[ $1 == yes ]] && tr Si Yes || tr No No
 }
 
 toggle_yes_no() {
@@ -141,9 +151,11 @@ ask_yes_no() {
   while true; do
     printf "\n%b %s\n" "$SELECT" "$question"
     if [[ $default == yes ]]; then
-      printf "  ${CYAN}1)${NC} Si ${DIM}[default]${NC}\n  ${CYAN}2)${NC} No\n"
+      printf "  ${CYAN}1)${NC} %s ${DIM}[%s]${NC}\n  ${CYAN}2)${NC} %s\n" \
+        "$(tr Si Yes)" "$(tr predeterminado default)" "$(tr No No)"
     else
-      printf "  ${CYAN}1)${NC} Si\n  ${CYAN}2)${NC} No ${DIM}[default]${NC}\n"
+      printf "  ${CYAN}1)${NC} %s\n  ${CYAN}2)${NC} %s ${DIM}[%s]${NC}\n" \
+        "$(tr Si Yes)" "$(tr No No)" "$(tr predeterminado default)"
     fi
     printf '%b ' "$SELECT"
     read -r value || value=''
@@ -151,7 +163,7 @@ ask_yes_no() {
     case ${value,,} in
       1|y|yes|s|si) return 0 ;;
       2|n|no) return 1 ;;
-      *) printf '%b %s\n' "$WARN" "Selecciona 1 o 2." ;;
+      *) printf '%b %s\n' "$WARN" "$(tr 'Selecciona 1 o 2.' 'Select 1 or 2.')" ;;
     esac
   done
 }
@@ -166,7 +178,7 @@ ask_menu() {
     printf "\n%b %s\n" "$SELECT" "$prompt" >&2
     for ((i=0; i<${#options[@]}; i++)); do
       if (( i + 1 == default )); then
-        printf "  ${CYAN}%d)${NC} %s ${DIM}[default]${NC}\n" "$((i+1))" "${options[i]}" >&2
+        printf "  ${CYAN}%d)${NC} %s ${DIM}[%s]${NC}\n" "$((i+1))" "${options[i]}" "$(tr predeterminado default)" >&2
       else
         printf "  ${CYAN}%d)${NC} %s\n" "$((i+1))" "${options[i]}" >&2
       fi
@@ -178,7 +190,7 @@ ask_menu() {
       printf '%s' "$choice"
       return
     fi
-    printf '%b %s\n' "$WARN" "Opcion no valida." >&2
+    printf '%b %s\n' "$WARN" "$(tr 'Opcion no valida.' 'Invalid option.')" >&2
   done
 }
 
@@ -194,7 +206,7 @@ ask_hex() {
   while true; do
     value=$(ask_text "$prompt" "$default")
     [[ $value =~ ^#[0-9A-Fa-f]{6}$ ]] && { printf '%s' "$value"; return; }
-    printf '\n%b %s\n' "$WARN" "Usa HEX, por ejemplo #00d7ff." >&2
+    printf '\n%b %s\n' "$WARN" "$(tr 'Usa HEX, por ejemplo #00d7ff.' 'Use HEX, for example #00d7ff.')" >&2
   done
 }
 
@@ -206,8 +218,36 @@ ask_opacity_value() {
       printf '%s' "$value"
       return
     fi
-    printf '\n%b %s\n' "$WARN" "Valor no valido. Usa un numero entre 0.10 y 1.00." >&2
+    printf '\n%b %s\n' "$WARN" "$(tr 'Valor no valido. Usa un numero entre 0.10 y 1.00.' 'Invalid value. Use a number between 0.10 and 1.00.')" >&2
   done
+}
+
+select_language() {
+  case ${LANGUAGE:-es} in
+    en|EN|eng|ENG|english|English) LANGUAGE=en ;;
+    es|ES|spa|SPA|spanish|Spanish|espanol|Espanol) LANGUAGE=es ;;
+    *) LANGUAGE=es ;;
+  esac
+  if [[ -n ${B3TTER_LANG:-}${B3TTER_LANGUAGE:-} ]]; then
+    return 0
+  fi
+  [[ -t 0 ]] || return 0
+
+  clear_screen
+  banner
+  printf '\n'
+  left_plain 'Choose language / Elegir idioma' "${GREEN}${BOLD}"
+  rule
+  printf "\n  ${CYAN}1)${NC} EN - English\n"
+  printf "  ${CYAN}2)${NC} ES - Espanol ${DIM}[default/predeterminado]${NC}\n\n"
+  printf '%b Select EN or ES / Selecciona EN o ES: ' "$SELECT"
+
+  local choice
+  read -r choice || choice=''
+  case ${choice,,} in
+    1|en|english) LANGUAGE=en ;;
+    *) LANGUAGE=es ;;
+  esac
 }
 
 select_target_user() {
@@ -215,7 +255,7 @@ select_target_user() {
 
   if [[ -n $requested ]]; then
     getent passwd "$requested" >/dev/null || {
-      printf '%b Usuario inexistente: %s\n' "$ERR" "$requested"
+      printf '%b %s: %s\n' "$ERR" "$(tr 'Usuario inexistente' 'Unknown user')" "$requested"
       exit 1
     }
     TARGET_USER=$requested
@@ -237,8 +277,8 @@ select_target_user() {
       labels+=("$user - $home")
     done
 
-    page "Usuario objetivo"
-    choice=$(ask_menu "Selecciona el usuario que quieres editar" 1 "${labels[@]}")
+    page "$(tr 'Usuario objetivo' 'Target user')"
+    choice=$(ask_menu "$(tr 'Selecciona el usuario que quieres editar' 'Select the user you want to edit')" 1 "${labels[@]}")
     TARGET_USER=${users[choice-1]}
   else
     TARGET_USER=$(id -un)
@@ -250,12 +290,12 @@ select_target_user() {
   TARGET_DBUS="unix:path=/run/user/${TARGET_UID}/bus"
 
   [[ -n $TARGET_HOME && $TARGET_HOME == /* ]] || {
-    printf '%b No se pudo determinar HOME para %s\n' "$ERR" "$TARGET_USER"
+    printf '%b %s %s\n' "$ERR" "$(tr 'No se pudo determinar HOME para' 'Could not determine HOME for')" "$TARGET_USER"
     exit 1
   }
 
   if (( EUID != 0 )) && [[ $(id -un) != "$TARGET_USER" ]]; then
-    printf '%b Para editar otro usuario usa sudo o B3TTER_USER.\n' "$ERR"
+    printf '%b %s\n' "$ERR" "$(tr 'Para editar otro usuario usa sudo o B3TTER_USER.' 'To edit another user, use sudo or B3TTER_USER.')"
     exit 1
   fi
 }
@@ -339,8 +379,8 @@ load_state() {
 
 choose_palette() {
   local choice
-  choice=$(ask_menu "Elige una paleta" 1 \
-    'Midnight Cyan' 'Cyber Purple' 'Matrix Green' 'Crimson Red' 'Colores personalizados')
+  choice=$(ask_menu "$(tr 'Elige una paleta' 'Choose a palette')" 1 \
+    'Midnight Cyan' 'Cyber Purple' 'Matrix Green' 'Crimson Red' "$(tr 'Colores personalizados' 'Custom colors')")
 
   case $choice in
     1) KITTY_BG='#0b0f14'; KITTY_FG='#e6edf3'; KITTY_TRAIL_COLOR='#00d7ff' ;;
@@ -348,17 +388,17 @@ choose_palette() {
     3) KITTY_BG='#07110a'; KITTY_FG='#d8ffe0'; KITTY_TRAIL_COLOR='#39ff88' ;;
     4) KITTY_BG='#14090b'; KITTY_FG='#ffe8ea'; KITTY_TRAIL_COLOR='#ff4d67' ;;
     5)
-      KITTY_BG=$(ask_hex "Color de fondo" "$KITTY_BG")
-      KITTY_FG=$(ask_hex "Color del texto" "$KITTY_FG")
-      KITTY_TRAIL_COLOR=$(ask_hex "Color del cursor animado" "$KITTY_TRAIL_COLOR")
+      KITTY_BG=$(ask_hex "$(tr 'Color de fondo' 'Background color')" "$KITTY_BG")
+      KITTY_FG=$(ask_hex "$(tr 'Color del texto' 'Text color')" "$KITTY_FG")
+      KITTY_TRAIL_COLOR=$(ask_hex "$(tr 'Color del cursor animado' 'Animated cursor color')" "$KITTY_TRAIL_COLOR")
       ;;
   esac
 }
 
 choose_theme() {
   local choice
-  choice=$(ask_menu "Elige el tema de Oh My Posh" 1 \
-    powerline jandedobbeleer atomic paradox clean-detailed 'Nombre personalizado')
+  choice=$(ask_menu "$(tr 'Elige el tema de Oh My Posh' 'Choose the Oh My Posh theme')" 1 \
+    powerline jandedobbeleer atomic paradox clean-detailed "$(tr 'Nombre personalizado' 'Custom name')")
 
   case $choice in
     1) POSH_THEME=powerline ;;
@@ -366,7 +406,7 @@ choose_theme() {
     3) POSH_THEME=atomic ;;
     4) POSH_THEME=paradox ;;
     5) POSH_THEME=clean-detailed ;;
-    6) POSH_THEME=$(ask_text "Nombre sin .omp.json" "${POSH_THEME:-powerline}") ;;
+    6) POSH_THEME=$(ask_text "$(tr 'Nombre sin .omp.json' 'Name without .omp.json')" "${POSH_THEME:-powerline}") ;;
   esac
 }
 
@@ -374,29 +414,29 @@ kitty_menu() {
   local choice shape
   while true; do
     page "Kitty"
-    printf "%s Usuario: ${CYAN}%s${NC} (${DIM}%s${NC})\n\n" "$INFO" "$TARGET_USER" "$TARGET_HOME"
-    printf "  Fondo:      ${CYAN}%s${NC}\n" "$KITTY_BG"
-    printf "  Texto:      ${CYAN}%s${NC}\n" "$KITTY_FG"
-    printf "  Opacidad:   ${CYAN}%s${NC}\n" "$KITTY_OPACITY"
-    printf "  Fuente:     ${CYAN}%s${NC}\n" "$KITTY_FONT_SIZE"
-    printf "  Cursor:     ${CYAN}%s${NC}\n" "$KITTY_CURSOR"
-    printf "  Trail:      ${CYAN}%s${NC} (${KITTY_TRAIL_COLOR})\n" "$(yes_label "$KITTY_TRAIL")"
+    printf "%s %s: ${CYAN}%s${NC} (${DIM}%s${NC})\n\n" "$INFO" "$(tr Usuario User)" "$TARGET_USER" "$TARGET_HOME"
+    printf "  %s:      ${CYAN}%s${NC}\n" "$(tr Fondo Background)" "$KITTY_BG"
+    printf "  %s:      ${CYAN}%s${NC}\n" "$(tr Texto Text)" "$KITTY_FG"
+    printf "  %s:   ${CYAN}%s${NC}\n" "$(tr Opacidad Opacity)" "$KITTY_OPACITY"
+    printf "  %s:     ${CYAN}%s${NC}\n" "$(tr Fuente Font)" "$KITTY_FONT_SIZE"
+    printf "  %s:     ${CYAN}%s${NC}\n" "$(tr Cursor Cursor)" "$KITTY_CURSOR"
+    printf "  %s:      ${CYAN}%s${NC} (${KITTY_TRAIL_COLOR})\n" "$(tr Rastro Trail)" "$(yes_label "$KITTY_TRAIL")"
 
-    choice=$(ask_menu "Que quieres editar?" 7 \
-      'Cambiar paleta/colores' \
-      'Cambiar opacidad' \
-      'Cambiar tamano de fuente' \
-      'Cambiar forma del cursor' \
-      'Activar/desactivar cursor animado' \
-      'Activar/desactivar config Kitty' \
-      'Volver')
+    choice=$(ask_menu "$(tr 'Que quieres editar?' 'What do you want to edit?')" 7 \
+      "$(tr 'Cambiar paleta/colores' 'Change palette/colors')" \
+      "$(tr 'Cambiar opacidad' 'Change opacity')" \
+      "$(tr 'Cambiar tamano de fuente' 'Change font size')" \
+      "$(tr 'Cambiar forma del cursor' 'Change cursor shape')" \
+      "$(tr 'Activar/desactivar cursor animado' 'Enable/disable animated cursor')" \
+      "$(tr 'Activar/desactivar config Kitty' 'Enable/disable Kitty config')" \
+      "$(tr Volver Back)")
 
     case $choice in
       1) choose_palette ;;
-      2) KITTY_OPACITY=$(ask_opacity_value "Valor entre 0.10 y 1.00" "$KITTY_OPACITY") ;;
-      3) KITTY_FONT_SIZE=$(ask_text "Tamano de fuente" "$KITTY_FONT_SIZE") ;;
+      2) KITTY_OPACITY=$(ask_opacity_value "$(tr 'Valor entre 0.10 y 1.00' 'Value between 0.10 and 1.00')" "$KITTY_OPACITY") ;;
+      3) KITTY_FONT_SIZE=$(ask_text "$(tr 'Tamano de fuente' 'Font size')" "$KITTY_FONT_SIZE") ;;
       4)
-        shape=$(ask_menu "Forma del cursor" 1 Block Beam Underline)
+        shape=$(ask_menu "$(tr 'Forma del cursor' 'Cursor shape')" 1 Block Beam Underline)
         case $shape in
           1) KITTY_CURSOR=block ;;
           2) KITTY_CURSOR=beam ;;
@@ -413,22 +453,22 @@ kitty_menu() {
 shell_menu() {
   local choice
   while true; do
-    page "ZSH, aliases y Fastfetch"
+    page "$(tr 'ZSH, aliases y Fastfetch' 'ZSH, aliases and Fastfetch')"
     printf "  LSD aliases:              ${CYAN}%s${NC}\n" "$(yes_label "$LSD_ALIASES")"
     printf "  BAT aliases:              ${CYAN}%s${NC}\n" "$(yes_label "$BAT_ALIASES")"
     printf "  Fastfetch aliases:        ${CYAN}%s${NC}\n" "$(yes_label "$FASTFETCH_ENABLED")"
-    printf "  Fastfetch al iniciar:     ${CYAN}%s${NC}\n" "$(yes_label "$FASTFETCH_START")"
+    printf "  %s:     ${CYAN}%s${NC}\n" "$(tr 'Fastfetch al iniciar' 'Fastfetch on startup')" "$(yes_label "$FASTFETCH_START")"
     printf "  zsh-autosuggestions:      ${CYAN}%s${NC}\n" "$(yes_label "$ZSH_AUTOSUGGEST")"
-    printf "  syntax errores en rojo:   ${CYAN}%s${NC}\n" "$(yes_label "$ZSH_SYNTAX")"
+    printf "  %s:   ${CYAN}%s${NC}\n" "$(tr 'errores de sintaxis en rojo' 'red syntax errors')" "$(yes_label "$ZSH_SYNTAX")"
 
-    choice=$(ask_menu "Que quieres cambiar?" 7 \
+    choice=$(ask_menu "$(tr 'Que quieres cambiar?' 'What do you want to change?')" 7 \
       'LSD aliases' \
       'BAT aliases' \
       'Fastfetch aliases' \
-      'Fastfetch al abrir terminal' \
+      "$(tr 'Fastfetch al abrir terminal' 'Fastfetch when opening terminal')" \
       'zsh-autosuggestions' \
-      'zsh-syntax-highlighting rojo' \
-      'Volver')
+      "$(tr 'zsh-syntax-highlighting en rojo' 'red zsh-syntax-highlighting')" \
+      "$(tr Volver Back)")
 
     case $choice in
       1) toggle_yes_no LSD_ALIASES ;;
@@ -454,10 +494,10 @@ shell_menu() {
 
 posh_menu() {
   page "Oh My Posh"
-  printf "  Activado: ${CYAN}%s${NC}\n" "$(yes_label "$POSH_ENABLED")"
-  printf "  Tema a descargar: ${CYAN}%s${NC}\n" "${POSH_THEME:-mantener actual}"
+  printf "  %s: ${CYAN}%s${NC}\n" "$(tr Activado Enabled)" "$(yes_label "$POSH_ENABLED")"
+  printf "  %s: ${CYAN}%s${NC}\n" "$(tr 'Tema a descargar' 'Theme to download')" "${POSH_THEME:-$(tr 'mantener actual' 'keep current')}"
 
-  if ask_yes_no "Usar Oh My Posh en el prompt?" "$POSH_ENABLED"; then
+  if ask_yes_no "$(tr 'Usar Oh My Posh en el prompt?' 'Use Oh My Posh in the prompt?')" "$POSH_ENABLED"; then
     POSH_ENABLED=yes
     choose_theme
   else
@@ -468,17 +508,17 @@ posh_menu() {
 desktop_menu() {
   local choice
   while true; do
-    page "Defaults y atajos"
-    printf "  Kitty como terminal predeterminada: ${CYAN}%s${NC}\n" "$(yes_label "$SET_KITTY_DEFAULT")"
-    printf "  Atajo Super+Enter para Kitty:       ${CYAN}%s${NC}\n" "$(yes_label "$SET_KITTY_SHORTCUT")"
-    printf "  ZSH como shell predeterminada:      ${CYAN}%s${NC}\n" "$(yes_label "$SET_ZSH_DEFAULT")"
-    printf "\n%s Estas acciones se aplican al confirmar los cambios.\n" "$INFO"
+    page "$(tr 'Predeterminados y atajos' 'Defaults and shortcuts')"
+    printf "  %s: ${CYAN}%s${NC}\n" "$(tr 'Kitty como terminal predeterminada' 'Kitty as default terminal')" "$(yes_label "$SET_KITTY_DEFAULT")"
+    printf "  %s:       ${CYAN}%s${NC}\n" "$(tr 'Atajo Super+Enter para Kitty' 'Super+Enter shortcut for Kitty')" "$(yes_label "$SET_KITTY_SHORTCUT")"
+    printf "  %s:      ${CYAN}%s${NC}\n" "$(tr 'ZSH como shell predeterminada' 'ZSH as default shell')" "$(yes_label "$SET_ZSH_DEFAULT")"
+    printf "\n%s %s\n" "$INFO" "$(tr 'Estas acciones se aplican al confirmar los cambios.' 'These actions are applied when you confirm the changes.')"
 
-    choice=$(ask_menu "Que quieres marcar?" 4 \
-      'Kitty como terminal predeterminada' \
-      'Atajo Super+Enter' \
-      'ZSH como shell predeterminada' \
-      'Volver')
+    choice=$(ask_menu "$(tr 'Que quieres marcar?' 'What do you want to mark?')" 4 \
+      "$(tr 'Kitty como terminal predeterminada' 'Kitty as default terminal')" \
+      "$(tr 'Atajo Super+Enter' 'Super+Enter shortcut')" \
+      "$(tr 'ZSH como shell predeterminada' 'ZSH as default shell')" \
+      "$(tr Volver Back)")
 
     case $choice in
       1) toggle_yes_no SET_KITTY_DEFAULT ;;
@@ -721,7 +761,7 @@ download_posh_theme() {
 
   theme=${theme:-powerline}
   command -v curl >/dev/null 2>&1 || {
-    printf '%b curl no esta disponible; no se pudo descargar el tema.\n' "$WARN"
+    printf '%b %s\n' "$WARN" "$(tr 'curl no esta disponible; no se pudo descargar el tema.' 'curl is not available; the theme could not be downloaded.')"
     return 0
   }
 
@@ -731,9 +771,9 @@ download_posh_theme() {
 
   if curl -fsSL "$url" -o "$dest" || curl -fsSL "$fallback" -o "$dest"; then
     own_target "$dir"
-    printf '%b Tema Oh My Posh aplicado: %s\n' "$OK" "$theme"
+    printf '%b %s: %s\n' "$OK" "$(tr 'Tema Oh My Posh aplicado' 'Oh My Posh theme applied')" "$theme"
   else
-    printf '%b No se pudo descargar el tema de Oh My Posh.\n' "$WARN"
+    printf '%b %s\n' "$WARN" "$(tr 'No se pudo descargar el tema de Oh My Posh.' 'The Oh My Posh theme could not be downloaded.')"
   fi
 }
 
@@ -742,9 +782,9 @@ apply_desktop_changes() {
     if (( EUID == 0 )) && [[ -x /usr/bin/kitty ]]; then
       update-alternatives --install /usr/bin/x-terminal-emulator x-terminal-emulator /usr/bin/kitty 90
       update-alternatives --set x-terminal-emulator /usr/bin/kitty
-      printf '%b Kitty establecido como terminal predeterminada.\n' "$OK"
+      printf '%b %s\n' "$OK" "$(tr 'Kitty establecido como terminal predeterminada.' 'Kitty set as the default terminal.')"
     else
-      printf '%b Para cambiar la terminal predeterminada del sistema ejecuta con sudo.\n' "$WARN"
+      printf '%b %s\n' "$WARN" "$(tr 'Para cambiar la terminal predeterminada del sistema ejecuta con sudo.' 'To change the system default terminal, run with sudo.')"
     fi
   fi
 
@@ -752,18 +792,18 @@ apply_desktop_changes() {
     if command -v xfconf-query >/dev/null 2>&1; then
       run_as_target xfconf-query -c xfce4-keyboard-shortcuts -p '/commands/custom/<Super>Return' -r -R >/dev/null 2>&1 || true
       run_as_target xfconf-query -c xfce4-keyboard-shortcuts -p '/commands/custom/<Super>Return' -n -t string -s /usr/bin/kitty >/dev/null 2>&1 || true
-      printf '%b Atajo Super+Enter aplicado.\n' "$OK"
+      printf '%b %s\n' "$OK" "$(tr 'Atajo Super+Enter aplicado.' 'Super+Enter shortcut applied.')"
     else
-      printf '%b xfconf-query no esta disponible; no se pudo aplicar Super+Enter.\n' "$WARN"
+      printf '%b %s\n' "$WARN" "$(tr 'xfconf-query no esta disponible; no se pudo aplicar Super+Enter.' 'xfconf-query is not available; Super+Enter could not be applied.')"
     fi
   fi
 
   if [[ $SET_ZSH_DEFAULT == yes ]]; then
     if (( EUID == 0 )) && command -v zsh >/dev/null 2>&1; then
       chsh -s "$(command -v zsh)" "$TARGET_USER"
-      printf '%b ZSH establecido como shell predeterminada para %s.\n' "$OK" "$TARGET_USER"
+      printf '%b %s %s.\n' "$OK" "$(tr 'ZSH establecido como shell predeterminada para' 'ZSH set as default shell for')" "$TARGET_USER"
     else
-      printf '%b Para cambiar la shell predeterminada ejecuta con sudo y asegurate de tener zsh.\n' "$WARN"
+      printf '%b %s\n' "$WARN" "$(tr 'Para cambiar la shell predeterminada ejecuta con sudo y asegurate de tener zsh.' 'To change the default shell, run with sudo and make sure zsh is installed.')"
     fi
   fi
 }
@@ -774,55 +814,61 @@ validate_changes() {
 
   if command -v zsh >/dev/null 2>&1 && [[ -f $rc ]]; then
     if ! run_as_target zsh -n "$rc"; then
-      printf '%b .zshrc tiene un error de sintaxis.\n' "$ERR"
+      printf '%b %s\n' "$ERR" "$(tr '.zshrc tiene un error de sintaxis.' '.zshrc has a syntax error.')"
       ok=no
     fi
   fi
 
   if [[ $KITTY_ENABLED == yes && ! -s "$TARGET_HOME/.config/kitty/b3tterterminal.conf" ]]; then
-    printf '%b No se encontro la config de Kitty generada.\n' "$ERR"
+    printf '%b %s\n' "$ERR" "$(tr 'No se encontro la config de Kitty generada.' 'The generated Kitty config was not found.')"
     ok=no
   fi
 
   if [[ $ok == yes ]]; then
-    printf '%b Validacion completada.\n' "$OK"
+    printf '%b %s\n' "$OK" "$(tr 'Validacion completada.' 'Validation completed.')"
   else
-    printf '%b Revisa los avisos anteriores antes de cerrar la terminal.\n' "$WARN"
+    printf '%b %s\n' "$WARN" "$(tr 'Revisa los avisos anteriores antes de cerrar la terminal.' 'Review the warnings above before closing the terminal.')"
   fi
 }
 
 summary_page() {
-  page "Resumen"
-  printf "Usuario: ${CYAN}%s${NC} (${DIM}%s${NC})\n\n" "$TARGET_USER" "$TARGET_HOME"
-  printf "Kitty: %s | bg: %s | fg: %s | opacity: %s | font: %s | cursor: %s | trail: %s\n" \
-    "$(yes_label "$KITTY_ENABLED")" "$KITTY_BG" "$KITTY_FG" "$KITTY_OPACITY" "$KITTY_FONT_SIZE" "$KITTY_CURSOR" "$(yes_label "$KITTY_TRAIL")"
-  printf "Oh My Posh: %s | theme: %s\n" "$(yes_label "$POSH_ENABLED")" "${POSH_THEME:-mantener actual}"
-  printf "LSD aliases: %s | BAT aliases: %s | Fastfetch: %s | startup: %s\n" \
-    "$(yes_label "$LSD_ALIASES")" "$(yes_label "$BAT_ALIASES")" "$(yes_label "$FASTFETCH_ENABLED")" "$(yes_label "$FASTFETCH_START")"
-  printf "Autosuggestions: %s | Syntax rojo: %s\n" "$(yes_label "$ZSH_AUTOSUGGEST")" "$(yes_label "$ZSH_SYNTAX")"
-  printf "Defaults: Kitty=%s | Super+Enter=%s | ZSH=%s\n" \
+  page "$(tr Resumen Summary)"
+  printf "%s: ${CYAN}%s${NC} (${DIM}%s${NC})\n\n" "$(tr Usuario User)" "$TARGET_USER" "$TARGET_HOME"
+  printf "Kitty: %s | %s: %s | %s: %s | %s: %s | %s: %s | %s: %s | %s: %s\n" \
+    "$(yes_label "$KITTY_ENABLED")" \
+    "$(tr fondo bg)" "$KITTY_BG" \
+    "$(tr texto fg)" "$KITTY_FG" \
+    "$(tr opacidad opacity)" "$KITTY_OPACITY" \
+    "$(tr fuente font)" "$KITTY_FONT_SIZE" \
+    "$(tr cursor cursor)" "$KITTY_CURSOR" \
+    "$(tr rastro trail)" "$(yes_label "$KITTY_TRAIL")"
+  printf "Oh My Posh: %s | %s: %s\n" "$(yes_label "$POSH_ENABLED")" "$(tr tema theme)" "${POSH_THEME:-$(tr 'mantener actual' 'keep current')}"
+  printf "LSD aliases: %s | BAT aliases: %s | Fastfetch: %s | %s: %s\n" \
+    "$(yes_label "$LSD_ALIASES")" "$(yes_label "$BAT_ALIASES")" "$(yes_label "$FASTFETCH_ENABLED")" "$(tr inicio startup)" "$(yes_label "$FASTFETCH_START")"
+  printf "Autosuggestions: %s | %s: %s\n" "$(yes_label "$ZSH_AUTOSUGGEST")" "$(tr 'Sintaxis roja' 'Red syntax')" "$(yes_label "$ZSH_SYNTAX")"
+  printf "%s: Kitty=%s | Super+Enter=%s | ZSH=%s\n" "$(tr Predeterminados Defaults)" \
     "$(yes_label "$SET_KITTY_DEFAULT")" "$(yes_label "$SET_KITTY_SHORTCUT")" "$(yes_label "$SET_ZSH_DEFAULT")"
 }
 
 apply_changes() {
-  page "Aplicando cambios"
-  printf "%s Usuario objetivo: ${CYAN}%s${NC} (${DIM}%s${NC})\n\n" "$INFO" "$TARGET_USER" "$TARGET_HOME"
+  page "$(tr 'Aplicando cambios' 'Applying changes')"
+  printf "%s %s: ${CYAN}%s${NC} (${DIM}%s${NC})\n\n" "$INFO" "$(tr 'Usuario objetivo' 'Target user')" "$TARGET_USER" "$TARGET_HOME"
 
   download_posh_theme
   write_zsh_config
-  printf '%b Configuracion ZSH actualizada.\n' "$OK"
+  printf '%b %s\n' "$OK" "$(tr 'Configuracion ZSH actualizada.' 'ZSH configuration updated.')"
 
   write_kitty_config
   if [[ $KITTY_ENABLED == yes ]]; then
-    printf '%b Configuracion Kitty actualizada.\n' "$OK"
+    printf '%b %s\n' "$OK" "$(tr 'Configuracion Kitty actualizada.' 'Kitty configuration updated.')"
   else
-    printf '%b Include de B3tterTerminal retirado de kitty.conf.\n' "$OK"
+    printf '%b %s\n' "$OK" "$(tr 'Include de B3tterTerminal retirado de kitty.conf.' 'B3tterTerminal include removed from kitty.conf.')"
   fi
 
   apply_desktop_changes
   validate_changes
 
-  printf "\n${BOLD}%s${NC}\n" "Listo. Abre una terminal nueva o ejecuta:"
+  printf "\n${BOLD}%s${NC}\n" "$(tr 'Listo. Abre una terminal nueva o ejecuta:' 'Done. Open a new terminal or run:')"
   printf "  ${CYAN}exec zsh${NC}\n"
   if [[ $KITTY_ENABLED == yes ]]; then
     printf "  ${CYAN}kitty${NC}\n"
@@ -834,13 +880,13 @@ main_menu() {
   local choice
   while true; do
     summary_page
-    choice=$(ask_menu "Menu principal" 6 \
-      'Editar Kitty' \
-      'Editar ZSH, aliases y Fastfetch' \
-      'Editar Oh My Posh' \
-      'Defaults y atajos' \
-      'Aplicar cambios' \
-      'Salir sin aplicar')
+    choice=$(ask_menu "$(tr 'Menu principal' 'Main menu')" 6 \
+      "$(tr 'Editar Kitty' 'Edit Kitty')" \
+      "$(tr 'Editar ZSH, aliases y Fastfetch' 'Edit ZSH, aliases and Fastfetch')" \
+      "$(tr 'Editar Oh My Posh' 'Edit Oh My Posh')" \
+      "$(tr 'Predeterminados y atajos' 'Defaults and shortcuts')" \
+      "$(tr 'Aplicar cambios' 'Apply changes')" \
+      "$(tr 'Salir sin aplicar' 'Exit without applying')")
 
     case $choice in
       1) kitty_menu ;;
@@ -849,13 +895,13 @@ main_menu() {
       4) desktop_menu ;;
       5)
         summary_page
-        if ask_yes_no "Aplicar esta configuracion?" yes; then
+        if ask_yes_no "$(tr 'Aplicar esta configuracion?' 'Apply this configuration?')" yes; then
           apply_changes
           return
         fi
         ;;
       6)
-        printf '\n%b Saliendo sin aplicar cambios.\n' "$WARN"
+        printf '\n%b %s\n' "$WARN" "$(tr 'Saliendo sin aplicar cambios.' 'Exiting without applying changes.')"
         return
         ;;
     esac
@@ -863,6 +909,7 @@ main_menu() {
 }
 
 main() {
+  select_language
   select_target_user
   load_state
   main_menu
