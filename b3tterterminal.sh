@@ -31,7 +31,7 @@ TARGET_DBUS=''
 #   sudo B3TTER_ASCII_ANIMATION=no ./b3tterterminal.sh
 ASCII_RGB_ANIMATION=${B3TTER_ASCII_ANIMATION:-yes}
 ASCII_ANIMATION_PID=''
-TERMINAL_STTY_STATE=''
+PROGRESS_CURSOR_SAVED=no
 
 # ---------- Defaults ----------
 INSTALL_ZSH=yes; ZSH_AUTOSUGGEST=yes; ZSH_SYNTAX=yes; ZSH_HISTORY=no; ZSH_DEFAULT=yes
@@ -47,7 +47,6 @@ declare -a TASK_LABELS=() TASK_FUNCS=() FAILURES=()
 
 cleanup() {
   stop_ascii_animation
-  resume_terminal_input
   tput cnorm 2>/dev/null || true
 }
 trap cleanup EXIT INT TERM
@@ -132,36 +131,6 @@ stop_ascii_animation() {
     wait "$ASCII_ANIMATION_PID" 2>/dev/null || true
   fi
   ASCII_ANIMATION_PID=''
-}
-
-drain_stdin() {
-  [[ -t 0 ]] || return 0
-
-  local pending
-  while IFS= read -r -t 0.01 pending; do
-    :
-  done
-}
-
-pause_terminal_input() {
-  [[ -t 0 ]] || return 0
-
-  if [[ -z ${TERMINAL_STTY_STATE:-} ]]; then
-    TERMINAL_STTY_STATE=$(stty -g 2>/dev/null || true)
-  fi
-
-  stty -echo 2>/dev/null || true
-  drain_stdin
-}
-
-resume_terminal_input() {
-  [[ -t 0 ]] || return 0
-
-  drain_stdin
-  if [[ -n ${TERMINAL_STTY_STATE:-} ]]; then
-    stty "$TERMINAL_STTY_STATE" 2>/dev/null || true
-    TERMINAL_STTY_STATE=''
-  fi
 }
 
 rule() {
@@ -1003,7 +972,12 @@ draw_single_progress() {
   empty=$(( width - filled ))
   percent=$(( completed * 100 / total ))
 
-  printf '\r\033[2K'
+  if [[ $PROGRESS_CURSOR_SAVED == yes ]]; then
+    printf '\033[u'
+  else
+    printf '\r'
+  fi
+  printf '\033[2K'
   printf "${CYAN}["
   for ((i=0; i<filled; i++)); do printf '█'; done
   for ((i=0; i<empty; i++)); do printf '░'; done
@@ -1015,7 +989,7 @@ run_task_with_single_bar() {
   local pid status frame=0
   local -a frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
 
-  ( "$fn" ) >> "$LOG_FILE" 2>&1 &
+  ( "$fn" ) >> "$LOG_FILE" 2>&1 </dev/null &
   pid=$!
   tput civis 2>/dev/null || true
 
@@ -1040,7 +1014,6 @@ run_task_with_single_bar() {
 
 install_page() {
   page "$(tr Instalación Installation)" '' no
-  pause_terminal_input
   build_tasks
   : > "$LOG_FILE"
 
@@ -1048,6 +1021,10 @@ install_page() {
   printf "${BOLD}%s${NC}\n" "$(tr 'Instalando toda la selección para el usuario:' 'Installing the full selection for user:')"
   printf "  ${CYAN}%s${NC} — ${DIM}%s${NC}\n\n" "$TARGET_USER" "$TARGET_HOME"
 
+  if [[ -t 1 ]]; then
+    printf '\033[s'
+    PROGRESS_CURSOR_SAVED=yes
+  fi
   draw_single_progress 0 "$total" "$(tr 'Preparando…' 'Preparing…')" '·'
 
   for ((i=0; i<total; i++)); do
@@ -1059,8 +1036,8 @@ install_page() {
   done
 
   draw_single_progress "$total" "$total" "$(tr 'Instalación completada' 'Installation complete')" '✓'
+  PROGRESS_CURSOR_SAVED=no
   printf '\n\n'
-  resume_terminal_input
 
   if ((${#FAILURES[@]} == 0)); then
     printf "${GREEN}${BOLD}[+] %s${NC}\n" "$(tr 'B3tterTerminal terminó correctamente.' 'B3tterTerminal completed successfully.')"
