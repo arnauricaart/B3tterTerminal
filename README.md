@@ -10,7 +10,7 @@ The installer asks for all options first and only changes the system after the f
 
 | Before | After |
 | --- | --- |
-| ![Terminal before](assets/screenshots/before-terminal.png) | ![Terminal after](assets/screenshots/after-terminal.png) |
+| ![Terminal before](assets/videos/before-terminal.gif) | ![Terminal after](assets/videos/after-terminal.gif) |
 | [Watch before video](assets/videos/before-terminal.mov) | [Watch after video](assets/videos/after-terminal.mov) |
 
 ## Command Upgrades
@@ -47,10 +47,16 @@ chmod +x b3tterterminal.sh
 sudo ./b3tterterminal.sh
 ```
 
-From a root shell, choose the target user explicitly:
+Install for root from a root shell:
 
 ```bash
-B3TTER_USER=kali ./b3tterterminal.sh
+B3TTER_USER=root ./b3tterterminal.sh
+```
+
+Install for root from a normal user:
+
+```bash
+sudo B3TTER_USER=root ./b3tterterminal.sh
 ```
 
 Disable the animated ASCII header if the terminal feels slow:
