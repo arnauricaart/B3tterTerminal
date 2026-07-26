@@ -46,6 +46,18 @@ Built for Kali Linux users who want a better hacking terminal, custom terminal a
 
 ## Videos
 
+### Full Setup Tutorial
+
+<p align="center">
+  <a href="https://youtu.be/fFsl-YlRE1E">
+    <img src="https://img.youtube.com/vi/fFsl-YlRE1E/maxresdefault.jpg" alt="B3tterTerminal full setup tutorial on YouTube" width="90%">
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://youtu.be/fFsl-YlRE1E"><strong>Watch the full setup tutorial on YouTube</strong></a>
+</p>
+
 - [Full installation demo](assets/videos/install-demo.mp4)
 
 ## Configuration Editor
